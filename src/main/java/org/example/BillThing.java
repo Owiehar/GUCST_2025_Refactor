@@ -1,18 +1,19 @@
 package org.example;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import static org.example.Util.printIndividualItem;
 import static org.example.Util.printTally;
 
 public class BillThing {
-    private static Map<String, Object> make(String n, double p, boolean f, boolean i2, int q) {
+    private static Map<String, Object> make(String name, double price, boolean food_item, boolean import_tax, int quantity) {
         Map<String, Object> m = new HashMap<>();
-        m.put("n", n);
-        m.put("p", p);
-        m.put("f", f);
-        m.put("i2", i2);
-        m.put("q", q);
+        m.put("name", name);
+        m.put("price", price);
+        m.put("food_item", food_item);
+        m.put("import_tax", import_tax);
+        m.put("quantity", quantity);
         return m;
     }
 
@@ -27,46 +28,39 @@ public class BillThing {
         double taxes = 0;
 
         // loyalty stuff
-        int pts = 0;
-        String c = "SAVE10";
+        int points = 0;
 
-        double savd = 0; // saved amount
+        double saved = 0; // saved amount
 
-        for (Map<String, Object> i : items) {
-            double p = (double) i.get("p");
-            boolean f = (boolean) i.get("f");
-            boolean i2 = (boolean) i.get("i2");
-            int q = (int) i.get("q");
-            double t = 0;
-            if (i2) {
-                t += p * 0.10;
-                if (p > 15) {
-                    if (i2) {
-                        t += p * 0.02;
-                    }
+        for (Map<String, Object> item : items) {
+            double price = (double) item.get("price");
+            boolean food_item = (boolean) item.get("food_item");
+            boolean import_tax = (boolean) item.get("import_tax");
+            int quanitity = (int) item.get("quantity");
+            double tax = 0;
+            if (import_tax) {
+                tax += price * 0.10;
+                if (price > 15) {
+                    tax += price * 0.02;
                 }
             }
-            if (!f) {
-                t += p * 0.05;
+            if (!food_item) {
+                tax += price * 0.05;
                 if (w) {
-                    if (!f) {
-                        t += p * 0.01;
-                    }
+                    tax += price * 0.01;
                 }
             }
-            double finalPrice = (p + t) * q;
-            double origPrice = finalPrice;
+            double finalPrice = (price + tax) * quantity;
+            double originalPrice = finalPrice;
 
             // discounts
-            if (p > 10 && !f) {
-                finalPrice -= 1.0 * q;
+            if (price > 10 && !food_item) {
+                finalPrice -= 1.0 * quantity;
                 if (vip) {
-                    if (p > 10) {
-                        finalPrice -= 0.5 * q;
-                        if (i2) {
-                            if (vip) {
-                                finalPrice -= 0.25 * q;
-                            }
+                    if (price > 10) {
+                        finalPrice -= 0.5 * quantity;
+                        if (import_tax) {
+                            finalPrice -= 0.25 * quantity;
                         }
                     }
                 }
@@ -85,25 +79,25 @@ public class BillThing {
                 }
             }
 
-            savd += (origPrice - finalPrice);
+            saved += (originalPrice - finalPrice);
             total += finalPrice;
-            taxes += t * q;
+            taxes += tax * quantity;
 
             // loyalty points
             if (vip) {
-                pts += (int)(finalPrice * 2);
-                if (pts > 100) {
-                    pts += 10;
+                points += (int)(finalPrice * 2);
+                if (points > 100) {
+                    points += 10;
                 }
             } else {
-                pts += (int)finalPrice;
-                if (pts > 100) {
-                    pts += 10;
+                points += (int)finalPrice;
+                if (points > 100) {
+                    points += 10;
                 }
             }
 
-            printIndividualItem((String) i.get("n"), q, finalPrice);
+            printIndividualItem((String) item.get("name"), quantity, finalPrice);
         }
-        printTally(taxes, total, savd, pts);
+        printTally(taxes, total, saved, points);
     }
 }
